@@ -16,6 +16,7 @@ class Notification
     const STATUS_REQUEST = 2;
     const STATUS_ACCEPTED = 3;
     const STATUS_REJECTED = 4;
+    const STATUS_UNFOLLOWED = 5;
 
     const TYPE_SYSTEM = 0;
     const TYPE_PRIVATE = 1;

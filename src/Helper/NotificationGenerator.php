@@ -9,12 +9,12 @@ class NotificationGenerator
 {
     public static function generateFollowRequest(array $params): Notification
     {
-        $fromUser = $params['from_user'];
+        $follower = $params['follower'];
 
         $notification = new Notification([
-            'from_user' => (int) $fromUser['id'],
-            'to_user' => (int) $params['to_user']['id'],
-            'message' => $fromUser['full_name'] . ' wants to follow you. Do you want to accept or reject?',
+            'from_user' => (int) $follower['id'],
+            'to_user' => (int) $params['followed']['id'],
+            'message' => $follower['full_name'] . ' wants to follow you. Do you want to accept or reject?',
             'status' => Notification::STATUS_REQUEST,
             'type_message' => Notification::TYPE_ACTION
         ]);
@@ -25,8 +25,8 @@ class NotificationGenerator
     public static function generateFollowRequestAcceptance(array $params): Notification
     {
         $notification = new Notification([
-            'from_user' => (int) $params['from_user']['id'],
-            'to_user' => (int) $params['to_user']['id'],
+            'from_user' => (int) $params['followed']['id'],
+            'to_user' => (int) $params['follower']['id'],
             'message' => 'Congratulations, your follow request was accepted.',
             'status' => Notification::STATUS_ACCEPTED,
             'type_message' => Notification::TYPE_SYSTEM
@@ -38,10 +38,25 @@ class NotificationGenerator
     public static function generateFollowRequestDeclining(array $params): Notification
     {
         $notification = new Notification([
-            'from_user' => (int) $params['from_user']['id'],
-            'to_user' => (int) $params['to_user']['id'],
+            'from_user' => (int) $params['followed']['id'],
+            'to_user' => (int) $params['follower']['id'],
             'message' => 'Your follow request has been declined.',
             'status' => Notification::STATUS_REJECTED,
+            'type_message' => Notification::TYPE_SYSTEM
+        ]);
+
+        return $notification;
+    }
+
+    public static function generateUnfollowAction(array $params): Notification
+    {
+        $follower = $params['follower'];
+
+        $notification = new Notification([
+            'from_user' => (int) $follower['id'],
+            'to_user' => (int) $params['followed']['id'],
+            'message' => 'User ' . $follower['full_name'] . ' no longer follows you.',
+            'status' => Notification::STATUS_UNFOLLOWED,
             'type_message' => Notification::TYPE_SYSTEM
         ]);
 
