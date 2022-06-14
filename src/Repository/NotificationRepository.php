@@ -30,13 +30,14 @@ class NotificationRepository extends ServiceEntityRepository
         }
     }
 
-    public function followInvitationExists(int $fromUserId, int $toUserId): bool
+    public function getFollowInvitation(int $fromUserId, int $toUserId): ?Notification
     {
         return $this->createQueryBuilder('n')
             ->where("n.fromUser = :from_user")->setParameter('from_user', $fromUserId)
             ->andWhere("n.toUser = :to_user")->setParameter('to_user', $toUserId)
+            ->andWhere("n.status = " . Notification::STATUS_REQUEST)
             ->getQuery()
-            ->getOneOrNullResult() !== null;
+            ->getOneOrNullResult();
     }
 
     public function remove(Notification $entity, bool $flush = false): void

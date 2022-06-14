@@ -13,25 +13,56 @@ use App\Helper\NotificationGenerator;
 class NotificationController extends AbstractController
 {
     /**
-     * @Route("/api/notification", methods={"POST"})
+     * @Route("/api/notification/follow", methods={"POST"})
      */
-    public function store(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function handleFollowRequests(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $params = $request->request->all();
         $type = $params['action_type'];
 
         $notificationRepo = $entityManager->getRepository(Notification::class);
+        $followInvitation = $notificationRepo->getFollowInvitation((int) $params['from_user']['id'], (int) $params['to_user']['id']);
+        
+        $followInvitationExists = $followInvitation !== null;
 
         if ($type === 'follow_request') {
         
-            if(!$notificationRepo->followInvitationExists($params['from_user']['id'], $params['to_user']['id'])) {
-
-                $notification = NotificationGenerator::generateFollowRequest($params);
-                $notificationRepo->add($notification, true);
+            if($followInvitationExists) {
+                
+                return $this->json([
+                    'message' => 'Follow invitation already exists.',
+                ], 400);
             }
-            
-            // Skip if notification already exists.
+
+            $notification = NotificationGenerator::generateFollowRequest($params);
+            $notificationRepo->add($notification);
         }
+        else if ($type === 'accept_follow_request') {
+            
+            if(!$followInvitationExists) {
+                
+                return $this->json([
+                    'message' => 'Cannot accept invitation that does not exist.',
+                ], 400);
+            }
+
+            $notificationRepo->remove($followInvitation);
+            $notificationRepo->add(NotificationGenerator::generateFollowRequestAcceptance($params));
+        }
+        else if ($type === 'decline_follow_request') {
+            
+            if(!$followInvitationExists) {
+                
+                return $this->json([
+                    'message' => 'Cannot decline invitation that does not exist.',
+                ], 400);
+            }
+
+            $notificationRepo->remove($followInvitation);
+            $notificationRepo->add(NotificationGenerator::generateFollowRequestDeclining($params));
+        }
+
+        $entityManager->flush();
 
         return $this->json([
             'message' => 'Successful.',
