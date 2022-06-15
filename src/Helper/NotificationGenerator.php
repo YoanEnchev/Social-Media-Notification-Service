@@ -56,8 +56,33 @@ class NotificationGenerator
             'from_user' => (int) $follower['id'],
             'to_user' => (int) $params['followed']['id'],
             'message' => 'User ' . $follower['full_name'] . ' no longer follows you.',
-            'status' => Notification::STATUS_UNFOLLOWED,
+            'status' => Notification::STATUS_UNREAD,
             'type_message' => Notification::TYPE_SYSTEM
+        ]);
+
+        return $notification;
+    }
+
+    public static function generateWelcomeNotification(array $params): Notification
+    {
+        $notification = new Notification([
+            'to_user' => $params['user_id'],
+            'message' => 'Welcome to our platform.',
+            'status' => Notification::STATUS_UNREAD,
+            'type_message' => Notification::TYPE_SYSTEM
+        ]);
+
+        return $notification;
+    }
+
+    public static function generateChatMessage(array $params): Notification
+    {
+        $notification = new Notification([
+            'from_user' => $params['sender_id'],
+            'to_user' => $params['receiver_id'],
+            'message' => $params['message_text'],
+            'status' => Notification::STATUS_UNREAD,
+            'type_message' => Notification::TYPE_PRIVATE
         ]);
 
         return $notification;

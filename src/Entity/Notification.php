@@ -5,18 +5,18 @@ namespace App\Entity;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
+use JsonSerializable;
 
 /**
  * @ORM\Entity(repositoryClass=NotificationRepository::class)
  */
-class Notification
+class Notification implements JsonSerializable
 {
     const STATUS_UNREAD = 0;
     const STATUS_READ = 1;
     const STATUS_REQUEST = 2;
     const STATUS_ACCEPTED = 3;
     const STATUS_REJECTED = 4;
-    const STATUS_UNFOLLOWED = 5;
 
     const TYPE_SYSTEM = 0;
     const TYPE_PRIVATE = 1;
@@ -141,6 +141,27 @@ class Notification
         return $this->status;
     }
 
+    public function getStatusAsString(): string
+    {
+        switch($this->status) {
+
+            case self::STATUS_UNREAD:
+                return 'unread';
+                
+            case self::STATUS_READ:
+                return 'read';
+
+            case self::STATUS_REQUEST:
+                return 'request';
+            
+            case self::STATUS_ACCEPTED:
+                return 'accepted';
+            
+            default:
+                return 'rejected';
+        }
+    }
+
     public function setStatus(int $status): self
     {
         $this->status = $status;
@@ -172,9 +193,31 @@ class Notification
         return $this;
     }
 
+    public function markAsRead(): self
+    {
+        $this->readOn = new DateTime();
+
+        return $this;
+    }
+
     public function getTypeMessage(): ?int
     {
         return $this->typeMessage;
+    }
+
+    public function getTypeAsString(): string
+    {
+        switch($this->typeMessage) {
+            
+            case self::TYPE_SYSTEM:
+                return 'system';
+
+            case self::TYPE_PRIVATE:
+                return 'private';
+            
+            default:
+                return 'action';
+        }
     }
 
     public function setTypeMessage(int $type_message): self
@@ -182,5 +225,19 @@ class Notification
         $this->typeMessage = $type_message;
 
         return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'from_user' => $this->getFromUser(),
+            'to_user' => $this->getToUser(),
+            'message'=> $this->getMessage(),
+            'status' => $this->getStatusAsString(),
+            'type' => $this->getTypeAsString(),
+            'added_on' => $this->getAddedOn(),
+            'read_on' => $this->getReadOn()
+        ];
     }
 }

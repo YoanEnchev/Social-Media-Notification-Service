@@ -40,6 +40,18 @@ class NotificationRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+    * @return Notification[] Returns an array of Notification objects
+    */
+    public function getUnseenNotificationsForUser(int $userId)
+    {
+        return $this->createQueryBuilder('n')
+            ->where("n.toUser = :to_user")->setParameter('to_user', $userId)
+            ->andWhere("n.readOn IS NULL")
+            ->getQuery()
+            ->getResult();
+    }
+
     public function remove(Notification $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);

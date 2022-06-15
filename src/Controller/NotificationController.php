@@ -77,4 +77,71 @@ class NotificationController extends AbstractController
             'message' => 'Successful.',
         ], 200);
     }
+
+    /**
+     * @Route("/api/notifications", methods={"GET"})
+     */
+    public function getUnreadNotifications(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $notificationRepo = $entityManager->getRepository(Notification::class);
+
+        return $this->json(
+            $notificationRepo->getUnseenNotificationsForUser((int) $request->query->get('user_id')), 200
+        );
+    }
+
+    /**
+     * @Route("/api/notifications", methods={"POST"})
+     */
+    public function store(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $notificationRepo = $entityManager->getRepository(Notification::class);
+        $params = $request->request->all();
+
+        $notification = null; // For scope visibility.
+        $type = $params['type'];
+
+        if ($type === 'chat_message') {
+            $notification = NotificationGenerator::generateChatMessage($params);
+        }
+        else if ($type === 'user_registration') {
+            $notification = NotificationGenerator::generateWelcomeNotification($params);
+        }
+
+        $notificationRepo->add($notification, true);
+
+        return $this->json([
+            'message' => 'Success'
+        ], 200 );
+    }
+
+    /**
+     * @Route("/api/notifications/{id}", methods={"PATCH"})
+     */
+    public function update(Request $request, EntityManagerInterface $entityManager, int $id): JsonResponse
+    {
+        $notificationRepo = $entityManager->getRepository(Notification::class);
+        $params = $request->request->all();
+
+        $notification = $notificationRepo->find($id);
+
+        if ($params['type'] === 'mark_as_read') {
+            
+            if($params['user_id'] != $notification->getToUser()) {
+                return $this->json([
+                    'message' => 'Cannot access this notification.'
+                ], 401);
+            }
+
+            $notification->markAsRead();
+        }
+        // Add more types in future if needed.
+        
+        $entityManager->persist($notification);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Success'
+        ], 200 );
+    }
 }
