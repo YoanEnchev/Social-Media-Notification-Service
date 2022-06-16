@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Notification;
-use App\Helper\NotificationGenerator;
+use App\Service\NotificationGenerator;
 
 class NotificationController extends AbstractController
 {
