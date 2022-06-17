@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Notification;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use DateTime;
 
 /**
  * @extends ServiceEntityRepository<Notification>
@@ -50,6 +51,20 @@ class NotificationRepository extends ServiceEntityRepository
             ->andWhere("n.readOn IS NULL")
             ->getQuery()
             ->getResult();
+    }
+
+    public function markAsReadMessagesForUser(int $userId)
+    {
+        $date = new DateTime();
+
+        $this->createQueryBuilder('n')
+        ->update()
+        ->where('n.toUser = :userId')->setParameter('userId', $userId)
+        ->andWhere('n.status = :whereStatus')->setParameter('whereStatus', Notification::STATUS_UNREAD)
+        ->set('n.readOn', ':readOn')->setParameter('readOn', $date)
+        ->set('n.status', ':status')->setParameter('status', Notification::STATUS_READ)
+        ->getQuery()
+        ->execute();
     }
 
     public function remove(Notification $entity, bool $flush = false): void

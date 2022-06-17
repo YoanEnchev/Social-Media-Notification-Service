@@ -28,8 +28,11 @@ class CLIExecutorController extends AbstractController
     /**
      * @Route("/api/cli/mark-as-read", methods={"POST"})
      */
-    public function readAll(Request $request): JsonResponse
+    public function readAll(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $entityManager->getRepository(Notification::class)
+            ->markAsReadMessagesForUser($request->get('user_id'));
+
         return $this->json([
             'message' => 'Successful.',
         ], 200);

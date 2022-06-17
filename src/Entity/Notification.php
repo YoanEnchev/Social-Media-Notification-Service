@@ -196,6 +196,7 @@ class Notification implements JsonSerializable
     public function markAsRead(): self
     {
         $this->readOn = new DateTime();
+        $this->status = self::STATUS_READ;
 
         return $this;
     }
